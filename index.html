@@ -6,6 +6,8 @@
     <title>Decrypt This</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
     <style>
         :root {
             --main-color: #0f0;
@@ -15,60 +17,114 @@
             padding: 0;
             margin: 0;
         }
-        #terminal {
+        #terminal, body {
+            background-color: var(--main-bg);
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
     <div id="terminal">
-
     </div>
     <script>
-        const term = new Terminal({
+        var input = "";
+        var files = {
+            "file1.txt": "file1.txt",
+            "file2.txt": "file2.txt",
+            "file3.txt": "file3.txt",
+        };
+        var term = new Terminal({
+            cursorBlink: true,
             theme: {
             background: '#000',
-            foreground: '#fff',
             }
         });
-        term.open(document.body);
-        intro();
+        var webLinksAddon = new WebLinksAddon.WebLinksAddon();
+        var fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.loadAddon(webLinksAddon);
+        term.open(document.getElementById("terminal"));
+        fitAddon.fit();
+        document.addEventListener("resize", () => {
+            fitAddon.fit();
+        });
+        var return_callback = run_command;
         term.onData((data) => {
             if (data === "\r") {
-                term.writeln("");
-                processInput();
-            } else if (data === "\x7f") { // backspace
-                const line = term.buffer.getLine(term.buffer.cursorY);
-                const cursorX = term.buffer.cursorX;
-                if (cursorX > 0) {
-                    line.deleteCells(cursorX - 1, 1);
-                    term.write("\b \b"); // erase character and move cursor back
+                return_callback();
+            } else if (data === "\x7f") {
+                if (input.length > 0) {
+                    input = input.slice(0, -1);
+                    term.write("\b \b");
                 }
             } else if (data === "\n") {
-                term.writeln("");
-                processInput();
+                return_callback();
             } else {
-                term.write(data);
+                term.write("\x1b[37m"+data);
+                input += data;
             }
         });
-        function processInput() {
-                const input = term.buffer.getLine(term.buffer.cursorY).translateToString().trim();
-                term.writeln("You entered: " + input);
+        intro();
+
+        async function run_command() {
+            term.writeln("");
+            if (input === "") {
                 prompt();
+            } else if (input === "help") {
+                term.writeln("built-in commands:\n\rhelp - display this help text\n\rls - list available files\n\rdecrypt [filename] - decrypt a file, i.e. 'decrypt file.txt'\n\rabout - learn about crypt");
+                term.writeln("Decrypting...");
+                term.writeln("The decrypted message is: \x1b[31mHello World\x1b[0m");
+                prompt();
+            } else if (input === "ls") {
+                ls();
+                prompt();
+            } else if (input === "about") {
+                term.writeln("Made with :3 by TheTridentGuy (http://thetridentguy.xyz)\n\rOpen source at: https://github.com/TheTridentGuy/DecryptThis");
+                prompt();
+            } else if (input.startsWith("decrypt")) {
+                decrypt(input.split(" ")[1]);
+            } else {
+                term.writeln(input + ": command not found");
+                prompt();
+            }
+            input = "";
         }
+
+        function decrypt(file) {
+            if (files[file]) {
+                term.writeln("preparing to decrypt " + file);
+                term.write("enter decryption key: ");
+                input = "";
+                return_callback = function() {
+                    term.writeln("");
+                    term.writeln("you entered: " + input);
+                    return_callback = run_command;
+                };
+            } else {
+                term.writeln("no such file: " + file);
+            }
+        }
+
+        function ls() {
+            for (var key in files) {
+                term.writeln(files[key]);
+            }
+        }
+
         function intro() {
-            term.writeln("\x1b[34mCrypt v1.0\x1b[0m");
-            term.writeln("\x1b[34mType 'help' to get a list of commands\x1b[0m");
+            term.writeln("\x1b[37mCrypt v1.0");
+            term.writeln("Type 'help' to get a list of commands");
             prompt();
         }
+
         function prompt() {
             term.write("\x1b[1;32mcrypt@crypt\x1b[37m:\x1b[34m~ $ \x1b[0m");
         }
-    </script>
     </script>
 </body>
 </html>
