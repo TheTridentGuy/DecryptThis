@@ -78,28 +78,50 @@
         intro();
         term.focus();
         async function run_command() {
-            term.writeln("");
-            if (input === "") {
-                prompt();
-            } else if (input === "help") {
-                term.writeln("built-in commands:\n\rhelp - display this help text\n\rls - list available files\n\rdecrypt [filename] - decrypt a file, i.e. 'decrypt file.txt'\n\rclear - clear the screen\n\ruwu - ???\n\rabout - learn about crypt\n\rtry running 'decrypt test.txt', password is 'password'");
-                prompt();
-            } else if (input === "ls") {
-                ls();
-                prompt();
-            } else if (input === "about") {
-                term.writeln("Made with :3 by TheTridentGuy (http://thetridentguy.xyz)\n\rOpen source at: https://github.com/TheTridentGuy/DecryptThis\n\rBuilt with xterm.js and CryptoJS");
-                prompt();
-            } else if (input.startsWith("decrypt")) {
-                decrypt(input.split(" ")[1]);
-            } else if (input === "clear") {
-                prompt();
-                term.clear();
-            } else if (input === "uwu") {
-                term.writeln(":3");
-                prompt();
-            } else {
-                term.writeln(input + ": command not found");
+            try {
+                term.writeln("");
+                if (input === "") {
+                    prompt();
+                } else if (input === "help") {
+                    term.writeln("built-in commands:\n\rhelp - display this help text\n\rls - list available files\n\rdecrypt [filename] - decrypt a file, i.e. 'decrypt file.txt'\n\rclear - clear the screen\n\rcat - print the contents of a file\n\ruwu - ???\n\rabout - learn about crypt\n\rtry running 'decrypt test.txt', password is 'password'");
+                    prompt();
+                } else if (input === "ls") {
+                    ls();
+                    prompt();
+                } else if (input.startsWith("cat")) {
+                    file = input.split(" ")[1]
+                    if (file) {
+                        term.writeln(files[file]);
+                    } else {
+                        term.writeln("FATAL: no file specified");
+                        term.writeln("usage: cat [filename]");
+                    }
+                    prompt();
+                } else if (input === "about") {
+                    term.writeln("Made with :3 by TheTridentGuy (http://thetridentguy.xyz)\n\rOpen source at: https://github.com/TheTridentGuy/DecryptThis\n\rBuilt with xterm.js and CryptoJS");
+                    prompt();
+                } else if (input.startsWith("decrypt")) {
+                    file = input.split(" ")[1]
+                    if (file) {
+                        decrypt(file);
+                    } else {
+                        term.writeln("FATAL: no file specified");
+                        term.writeln("usage: decrypt [filename]");
+                        prompt();
+                    }
+                } else if (input === "clear") {
+                    prompt();
+                    term.clear();
+                } else if (input === "uwu") {
+                    term.writeln(":3");
+                    prompt();
+                } else {
+                    term.writeln(input + ": command not found");
+                    prompt();
+                }
+            } catch (error) {
+                term.writeln("an error occurred: " + error.message);
+                term.writeln("you might want to try reloading the page");
                 prompt();
             }
         }
