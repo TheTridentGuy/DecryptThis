@@ -33,9 +33,10 @@
     <div id="terminal">
     </div>
     <script>
+        var salt = "sALtISyuMmypwndsjr"
         var input = "";
         var files = {
-            "test.txt": "U2FsdGVkX18D9JzZUR4/TdPfWLA7vojqaCnRYjdZQXMw1+LLPetn8/4RVCTlajXP",
+            "test.txt": "U2FsdGVkX1+ar7cz8rR/uKPPiXd0uGk9PGKTmfhC5dExcYBK/N17KiYWgoHwgF9P",
         };
         var term = new Terminal({
             cursorBlink: true,
@@ -137,7 +138,7 @@
                 input = "";
                 return_callback = function() {
                     term.writeln("");
-                    var decrypted = CryptoJS.AES.decrypt(files[file], input).toString(CryptoJS.enc.Utf8);
+                    var decrypted = CryptoJS.AES.decrypt(files[file], CryptoJS.SHA256(input+salt).toString()).toString(CryptoJS.enc.Utf8);
                 if (decrypted.startsWith("PLAINTEXT")) {
                         term.writeln("decryption successful");
                         downloadDataURL(file, decrypted.substring(9));
@@ -178,8 +179,9 @@
             link.click();
             document.body.removeChild(link);
         }
-        function encrypt_data_url(name, data_url, password) {
-            var encrypted = CryptoJS.AES.encrypt("PLAINTEXT" + data_url, password).toString();
+
+        function encrypt_data_url(data_url, password) {
+            var encrypted = CryptoJS.AES.encrypt("PLAINTEXT" + data_url, CryptoJS.SHA256(password+salt).toString()).toString();
             console.log(encrypted);
         }
     </script>
