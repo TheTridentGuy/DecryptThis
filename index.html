@@ -83,7 +83,7 @@
                 if (input === "") {
                     prompt();
                 } else if (input === "help") {
-                    term.writeln("built-in commands:\n\rhelp - display this help text\n\rls - list available files\n\rdecrypt [filename] - decrypt a file, i.e. 'decrypt file.txt'\n\rclear - clear the screen\n\rcat - print the contents of a file\n\ruwu - ???\n\rabout - learn about crypt\n\rtry running 'decrypt test.txt', password is 'password'");
+                    term.writeln("built-in commands:\n\rhelp - display this help text\n\rls - list available files\n\rdecrypt [filename] - decrypt a file, i.e. 'decrypt file.txt'\n\rclear - clear the screen\n\rcat [filename] - print the contents of a file\n\ruwu - ???\n\rabout - learn about crypt\n\rtry running 'decrypt test.txt', password is 'password'");
                     prompt();
                 } else if (input === "ls") {
                     ls();
@@ -91,7 +91,11 @@
                 } else if (input.startsWith("cat")) {
                     file = input.split(" ")[1]
                     if (file) {
-                        term.writeln(files[file]);
+                        try {
+                            term.writeln(files[file]);
+                        } catch (error) {
+                            term.writeln("FATAL: no such file: " + file);
+                        }
                     } else {
                         term.writeln("FATAL: no file specified");
                         term.writeln("usage: cat [filename]");
@@ -144,7 +148,7 @@
                     prompt();
                 };
             } else {
-                term.writeln("no such file: " + file);
+                term.writeln("FATAL: no such file: " + file);
                 prompt();
             }
         }
