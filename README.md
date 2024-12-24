@@ -1,2 +1,6 @@
 # DecryptThis
-Just a little project I'm working on for a friend, might expand later
+Stores a few hardcoded and encrypted files that you can download with a password. Wouldn't
+recommend using to keep nuke codes safe.
+
+# https://thetridentguy.github.io/DecryptThis
+# Try running `decrypt test.txt` on the site!
