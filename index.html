@@ -27,11 +27,27 @@
             height: 100%;
             overflow: hidden;
         }
+        .snow-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #snow-front {
+            z-index: 1;
+        }
+        #snow-back {
+            z-index: 0;
+        }
     </style>
 </head>
 <body>
+    <canvas id="snow-back" class="snow-container"></canvas>
     <div id="terminal">
     </div>
+    <canvas id="snow-front" class="snow-container"></canvas>
     <script>
         var salt = "sALtISyuMmypwndsjr"
         var input = "";
@@ -84,10 +100,15 @@
                 if (input === "") {
                     prompt();
                 } else if (input === "help") {
-                    term.writeln("built-in commands:\n\r\n\rhelp\t\t\tdisplay this help text\n\rls\t\t\tlist available files\n\rdecrypt [filename]\tdecrypt a file, i.e. 'decrypt file.txt'\n\rclear\t\t\tclear the screen\n\rcat [filename]\t\tprint the contents of a file\n\ruwu\t\t\t???\n\rabout\t\t\tlearn about crypt\n\r\n\rtry running 'decrypt test.txt', password is 'password'");
+                    term.writeln("built-in commands:\n\r\n\rhelp\t\t\tdisplay this help text\n\rls\t\t\tlist available files\n\rdecrypt [filename]\tdecrypt a file, i.e. 'decrypt file.txt'\n\rclear\t\t\tclear the screen\n\rcat [filename]\t\tprint the contents of a file\n\rsnow\t\t\tmake it snow just a little harder\n\ruwu\t\t\t???\n\rabout\t\t\tlearn about crypt\n\r\n\rtry running 'decrypt test.txt', password is 'password'");
                     prompt();
                 } else if (input === "ls") {
                     ls();
+                    prompt();
+                } else if (input === "snow") {
+                    for (let i = 0; i < 100; i++) {
+                        create_snowflake(random = false);
+                    }
                     prompt();
                 } else if (input.startsWith("cat")) {
                     file = input.split(" ")[1]
@@ -184,6 +205,71 @@
             var encrypted = CryptoJS.AES.encrypt("PLAINTEXT" + data_url, CryptoJS.SHA256(password+salt).toString()).toString();
             console.log(encrypted);
         }
+
+        const canvasBack = document.getElementById('snow-back');
+        const canvasFront = document.getElementById('snow-front');
+        const ctxBack = canvasBack.getContext('2d');
+        const ctxFront = canvasFront.getContext('2d');
+        const snowflakes = [];
+
+        function resize_canvas() {
+            canvasBack.width = window.innerWidth;
+            canvasBack.height = window.innerHeight;
+            canvasFront.width = window.innerWidth;
+            canvasFront.height = window.innerHeight;
+        }
+
+        function create_snowflake(random = true) {
+            const x = Math.random() * canvasBack.width;
+            const y = random ? Math.random() * canvasBack.height : 0;
+            const radius = Math.random() * 1 + 1;
+            const speed = Math.random() * 1 + 1;
+            const opacity = Math.random() * 0.5 + 0.5;
+            snowflakes.push({ x, y, radius, speed, opacity });
+        }
+
+        function update_snowflakes() {
+            for (let i = 0; i < snowflakes.length; i++) {
+                const snowflake = snowflakes[i];
+                snowflake.y += snowflake.speed;
+                if (snowflake.y > canvasBack.height) {
+                snowflake.y = 0;
+                }
+            }
+        }
+
+        function draw_snowflakes() {
+            ctxBack.clearRect(0, 0, canvasBack.width, canvasBack.height);
+            ctxFront.clearRect(0, 0, canvasFront.width, canvasFront.height);
+            for (let i = 0; i < snowflakes.length; i++) {
+                const snowflake = snowflakes[i];
+                ctxBack.beginPath();
+                ctxBack.arc(snowflake.x, snowflake.y, snowflake.radius, 0, Math.PI * 2);
+                ctxBack.fillStyle = `rgba(255, 255, 255, ${snowflake.opacity})`;
+                ctxBack.fill();
+                ctxBack.closePath();
+
+                ctxFront.beginPath();
+                ctxFront.arc(snowflake.x, snowflake.y, snowflake.radius, 0, Math.PI * 2);
+                ctxFront.fillStyle = `rgba(255, 255, 255, ${snowflake.opacity})`;
+                ctxFront.fill();
+                ctxFront.closePath();
+            }
+        }
+
+        function animate_snowflakes() {
+            update_snowflakes();
+            draw_snowflakes();
+            requestAnimationFrame(animate_snowflakes);
+        }
+
+        window.addEventListener('resize', resize_canvas);
+        resize_canvas();
+
+        for (let i = 0; i < 200; i++) {
+            create_snowflake();
+        }
+        animate_snowflakes();
     </script>
 </body>
 </html>
